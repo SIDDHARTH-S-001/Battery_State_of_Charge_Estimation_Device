@@ -1,0 +1,169 @@
+url = "https://data.mendeley.com/public-files/datasets/cp3473x7xv/files/ad7ac5c9-2b9e-458a-a91f-6f3da449bdfb/file_downloaded";
+downloadFolder = tempdir;
+outputFolder = fullfile(downloadFolder, "LGHG2@n10C_to_25degC");
+if ~exist(outputFolder, "dir")
+    fprintf("Downloading LGHG2@n10C_to_25degC.zip (56 MB) ... ")
+    filename = fullfile(downloadFolder, "LGHG2@n10C_to_25degC.zip");
+    websave(filename, url);
+    unzip(filename, outputFolder)
+end
+
+folderTrain = fullfile(outputFolder, "Train");
+fdsTrain = fileDatastore(folderTrain, 'ReadFcn', @load); 
+tdsPredictorsTrain = transform(fdsTrain, @(data) {data.X});
+preview(tdsPredictorsTrain)
+tdsTargetsTrain = transform(fdsTrain, @(data) {data.Y});
+preview(tdsTargetsTrain)
+cdsTrain = combine(tdsPredictorsTrain, tdsTargetsTrain);
+
+folderTest = fullfile(outputFolder, "Test");
+fdsTest = fileDatastore(folderTest, 'ReadFcn', @load);
+tdsPredictorsTest = transform(fdsTest, @(data) {data.X});
+preview(tdsPredictorsTest)
+tdsTargetsTest = transform(fdsTest, @(data) {data.Y});
+preview(tdsTargetsTest)
+
+indices = 1;
+vdsPredictors = subset(tdsPredictorsTest, indices);
+vdsTargets = subset(tdsTargetsTest, indices);
+cdsVal = combine(vdsPredictors, vdsTargets);
+
+numFeatures = 5;
+numOutputs = 1;
+
+% Define the variable bounds for hyperparameters
+numHiddenNeurons_1_bounds = [10, 20];
+numHiddenNeurons_2_bounds = [15, 30];
+numHiddenNeurons_3_bounds = [5, 15];
+
+% Define PSO options
+options = optimoptions('particleswarm', 'SwarmSize', 50, 'MaxIterations', 50, 'UseParallel', true);
+
+% Combine the bounds into a matrix
+bounds = [numHiddenNeurons_1_bounds;
+          numHiddenNeurons_2_bounds;
+          numHiddenNeurons_3_bounds];
+
+objectiveFcn = @(hyperparams) train_and_evaluate_model(hyperparams, numFeatures, numOutputs, cdsTrain, cdsVal, tdsPredictorsTest, tdsTargetsTest);
+
+% Run PSO to optimize hyperparameters
+numVars = size(bounds, 1);
+bestHyperparams = particleswarm(objectiveFcn, numVars, bounds(:,1), bounds(:,2), options);
+
+disp('Best Hyperparameters:');
+disp(bestHyperparams);
+
+% Train and evaluate the model with the best hyperparameters
+bestModel = train_and_evaluate_model(bestHyperparams, numFeatures, numOutputs, cdsTrain, cdsVal, tdsPredictorsTest, tdsTargetsTest);
+
+function rmse = train_and_evaluate_model(hyperparams, numFeatures, numOutputs, cdsTrain, cdsVal, tdsPredictorsTest, tdsTargetsTest)
+    numHiddenNeurons_1 = round(hyperparams(1)); % Round to the nearest integer
+    numHiddenNeurons_2 = round(hyperparams(2)); % Round to the nearest integer
+    numHiddenNeurons_3 = round(hyperparams(3));
+    
+    % Rest of the function remains the same
+    % ...
+    layers = [
+        sequenceInputLayer(numFeatures,Normalization="zscore") % zerocenter -> x - mean, zscore = (x - mean)/std-dev
+        fullyConnectedLayer(numHiddenNeurons_1)
+        tanhLayer                            
+        fullyConnectedLayer(numHiddenNeurons_2)
+        leakyReluLayer(0.3) % A leaky ReLU layer performs a threshold operation, where any input value less than zero is multiplied by a fixed scalar.
+        fullyConnectedLayer(numHiddenNeurons_3)
+        leakyReluLayer(0.3)
+        fullyConnectedLayer(numOutputs)
+        clippedReluLayer(1) % A clipped ReLU layer performs a threshold operation, where any input value less than zero is set to zero and any value above the clipping ceiling is set to that clipping ceiling.
+        regressionLayer]; % regression layer computes half-mean squared loss.
+    
+    Epochs = 100;
+    miniBatchSize = 1; % 0.01, 0.01*0.5 = 0.005, 0.01*0.5*0.5 = 0.025,0.00125, 0.000625 
+    valFrequency = 25; 
+    InitialLR = 0.01;
+    LRDropPeriod = 25;
+    LRDropFactor = 0.99;
+    
+    options = trainingOptions("adam", ...                 
+        MaxEpochs=Epochs, ...
+        GradientThreshold=1, ...
+        InitialLearnRate=InitialLR, ...
+        LearnRateSchedule="piecewise", ...
+        LearnRateDropPeriod=LRDropPeriod, ...
+        LearnRateDropFactor=LRDropFactor, ...
+        ValidationData=cdsVal, ...
+        ValidationFrequency=valFrequency, ...
+        MiniBatchSize=miniBatchSize, ...
+        Verbose=0, ... 
+        Shuffle="every-epoch",...
+        Plots="training-progress", ...
+        ExecutionEnvironment="cpu");
+    
+    net = trainNetwork(cdsTrain,layers,options);
+    YPred = predict(net,tdsPredictorsTest,MiniBatchSize=1);
+    YTarget = readall(tdsTargetsTest);
+    
+    figure
+    
+    nexttile
+    plot(YPred{1})
+    hold on
+    plot(YTarget{1})
+    legend(["Predicted" "Target"], Location="Best")
+    ylabel("SOC")
+    xlabel("Time(s)")
+    title("n10degC")
+    
+    nexttile
+    plot(YPred{2})
+    hold on
+    plot(YTarget{2})
+    legend(["Predicted" "Target"], Location="Best")
+    ylabel("SOC")
+    xlabel("Time(s)")
+    title("0degC")
+    
+    nexttile
+    plot(YPred{3})
+    hold on
+    plot(YTarget{3})
+    legend(["Predicted" "Target"], Location="Best")
+    ylabel("SOC")
+    xlabel("Time(s)")
+    title("10degC")
+    
+    nexttile
+    plot(YPred{4})
+    hold on
+    plot(YTarget{4})
+    legend(["Predicted" "Target"], Location="Best")
+    ylabel("SOC")
+    xlabel("Time(s)")
+    title("25degC")
+    
+    Err_n10degC = YPred{1} - YTarget{1};
+    Err_0degC = YPred{2} - YTarget{2};
+    Err_10degC = YPred{3} - YTarget{3};
+    Err_25degC = YPred{4} - YTarget{4};
+    RMSE_n10degC = sqrt(mean(Err_n10degC.^2))*100;
+    RMSE_0degC = sqrt(mean(Err_0degC.^2))*100;
+    RMSE_10degC = sqrt(mean(Err_10degC.^2))*100;
+    RMSE_25degC = sqrt(mean(Err_25degC.^2))*100;
+    MAX_n10degC = max(abs(Err_n10degC))*100;
+    MAX_0degC = max(abs(Err_0degC))*100;
+    MAX_10degC = max(abs(Err_10degC))*100;
+    MAX_25degC = max(abs(Err_25degC))*100;
+    
+    temp = [-10,0,10,25];
+    figure
+    nexttile
+    bar(temp,[RMSE_n10degC,RMSE_0degC,RMSE_10degC,RMSE_25degC])
+    ylabel("RMSE (%)")
+    xlabel("Temperature (C)")
+    
+    nexttile
+    bar(temp,[MAX_n10degC,MAX_0degC,MAX_10degC,MAX_25degC])
+    ylabel("MAX (%)")
+    xlabel("Temperature (C)")
+    
+    % Calculate RMSE and return it as the objective value for PSO
+    rmse = mean([RMSE_n10degC, RMSE_0degC, RMSE_10degC, RMSE_25degC]);
+end
