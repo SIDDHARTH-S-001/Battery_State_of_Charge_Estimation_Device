@@ -5,6 +5,8 @@
 
 <br>The dataset we used can be found here, [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1).<br>
 <br>Matlab Code files have been written in Matlab 2020b and all python files have been verified to work in Python 3.9.5.</br>
+<br>Clone this repo into your working directory and execute the **training_code.m** file to train an artifical neural network.</br>
+<br>You can change the network hyper-parameters to obtain different training results.</br>
 
 <h3>Components</h3>
 <br>1) Raspberry Pi 4</br>
