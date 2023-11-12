@@ -3,7 +3,7 @@
 <h3>Introduction</h3>
 <br>This is a deep learning approach to estimate State-of-Charge of 18650 Li-Ion batteries in real-time with high accuracy.</br>
 
-<br>The dataset we used can be found here, [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1).
+<br>The dataset, used can be found here, [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1).
 <br>Clone this repo into your working directory and execute the **training_code.m** file to train an artifical neural network.
 <br>You can change the network hyper-parameters to improve training results.
 <br>Once the training is complete, you can export the model into various formats as per your use case through builtin matlab commands. In this case, it has been exported as a Tensorflow model and later converted to TFLite format to be deployed on Hardware.
