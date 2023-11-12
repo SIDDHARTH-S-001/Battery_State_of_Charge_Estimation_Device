@@ -2,7 +2,7 @@
 
 <h3>Introduction</h3>
 This is a deep learning approach to estimate State-of-Charge of 18650 Li-Ion batteries in real-time with high accuracy.
-The dataset we used can be found here [Dataset.](https://data.mendeley.com/datasets/cp3473x7xv/1).
+The dataset we used can be found here [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1)
 Matlab Code files have been written in Matlab 2020b and all python files have been verified to work in Python 3.9.5.
 
 <h3>Components</h3>
