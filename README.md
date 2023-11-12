@@ -1,9 +1,9 @@
 # Battery_State_of_Charge_Estimation_Device
 
 <h3>Introduction</h3>
-This is a deep learning approach to estimate State-of-Charge of 18650 Li-Ion batteries in real-time with high accuracy.
-The dataset we used can be found here [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1)
-Matlab Code files have been written in Matlab 2020b and all python files have been verified to work in Python 3.9.5.
+<br>This is a deep learning approach to estimate State-of-Charge of 18650 Li-Ion batteries in real-time with high accuracy.</br>
+<br>The dataset we used can be found here [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1).<br>
+<br>Matlab Code files have been written in Matlab 2020b and all python files have been verified to work in Python 3.9.5.</br>
 
 <h3>Components</h3>
 <br>1) Raspberry Pi 4</br>
