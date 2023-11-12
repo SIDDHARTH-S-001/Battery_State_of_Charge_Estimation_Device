@@ -5,7 +5,7 @@
 
 <br>The dataset we used can be found here, [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1).<br>
 <br>Clone this repo into your working directory and execute the **training_code.m** file to train an artifical neural network.</br>
-<br>You can change the network hyper-parameters to obtain different training results.</br>
+<br>You can change the network hyper-parameters to improve training results.</br>
 <br>Once the training is complete, you can export the model into various formats as per your use case through builtin matlab commands. In this case, it has been exported as a Tensorflow model and later converted to TFLite format to be deployed on Hardware.</br>
 <br>Matlab Code files have been written in Matlab 2020b and all python files have been verified to work in Python 3.9</br>
 
