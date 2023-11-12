@@ -2,6 +2,7 @@
 
 <h3>Introduction</h3>
 <br>This is a deep learning approach to estimate State-of-Charge of 18650 Li-Ion batteries in real-time with high accuracy.</br>
+
 <br>The dataset we used can be found here, [Dataset](https://data.mendeley.com/datasets/cp3473x7xv/1).<br>
 <br>Clone this repo into your working directory and execute the **training_code.m** file to train an artifical neural network.</br>
 <br>You can change the network hyper-parameters to obtain different training results.</br>
